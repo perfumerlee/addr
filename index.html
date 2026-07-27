@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- PHONE911 Simple Form v0.06 -->
+  <!-- PHONE911 Simple Form v0.07 -->
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#324f3e">
   <meta name="format-detection" content="telephone=no, address=no, email=no">
 
-  <title>배송정보 입력 | PHONE911 v0.06</title>
+  <title>배송정보 입력 | PHONE911 v0.07</title>
 
   <style>
     :root {
@@ -75,9 +75,11 @@
       word-break: keep-all;
     }
 
-    body.postcode-open {
+    body.postcode-open,
+    body.ui-locked {
       overflow: hidden;
       overscroll-behavior: none;
+      touch-action: none;
     }
 
     button,
@@ -341,6 +343,153 @@
       display: none;
     }
 
+    /* 저장 중 화면 잠금 */
+    .loading-overlay,
+    .completion-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      padding:
+        max(18px, var(--safe-top))
+        max(18px, var(--safe-right))
+        max(18px, var(--safe-bottom))
+        max(18px, var(--safe-left));
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading-overlay.show,
+    .completion-modal.show {
+      display: flex;
+    }
+
+    .loading-overlay {
+      z-index: 30000;
+      background: rgba(20, 25, 21, 0.72);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      cursor: wait;
+    }
+
+    .loading-card {
+      width: min(290px, 100%);
+      padding: 28px 22px 24px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 17px;
+      animation: loadingRotate 0.9s linear infinite;
+    }
+
+    .loading-spinner circle {
+      fill: none;
+      stroke-width: 5;
+      stroke-linecap: round;
+    }
+
+    .loading-spinner .spinner-track {
+      stroke: #e4e8e3;
+    }
+
+    .loading-spinner .spinner-head {
+      stroke: var(--point);
+      stroke-dasharray: 72 140;
+    }
+
+    .loading-title {
+      margin: 0 0 7px;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .loading-description {
+      margin: 0;
+      color: var(--sub-text);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    @keyframes loadingRotate {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* 저장 완료 모달 */
+    .completion-modal {
+      z-index: 29000;
+      background: rgba(20, 25, 21, 0.62);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+
+    .completion-card {
+      width: min(360px, 100%);
+      padding: 28px 22px 22px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+      text-align: center;
+    }
+
+    .completion-icon {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 17px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-size: 31px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .completion-title {
+      margin: 0 0 9px;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .completion-description {
+      margin: 0 0 22px;
+      color: var(--sub-text);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .completion-confirm-button {
+      width: 100%;
+      min-height: 52px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--point);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .completion-confirm-button:active {
+      transform: scale(0.985);
+    }
+
     /* 모바일 주소 검색 레이어 */
     .postcode-layer {
       display: none;
@@ -526,7 +675,7 @@
     -->
     <form
       id="deliveryForm"
-      action="https://script.google.com/macros/s/AKfycbwBpWYNOfu_IZtZ7R1ZLkObc_cprNITMUgHsX3MUudgCLjnVOLF_c4h8oN-k5YAQxLt/exec"
+      action="https://script.google.com/macros/s/AKfycbzoPV34wdGWb7mhTM9koQLFPHake4Yebw5rAfRCFNuJs-oy3f6Icax4Y9BwCFA78PIH/exec"
       method="POST"
       target="submitFrame"
       novalidate
@@ -675,7 +824,7 @@
       </div>
     </form>
 
-    <div class="version">PHONE911 Simple Form v0.06</div>
+    <div class="version">PHONE911 Simple Form v0.07</div>
   </main>
 
   <iframe
@@ -717,6 +866,58 @@
     </section>
   </div>
 
+  <div
+    id="loadingOverlay"
+    class="loading-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="loadingTitle"
+    aria-describedby="loadingDescription"
+    aria-hidden="true"
+  >
+    <div class="loading-card">
+      <svg
+        class="loading-spinner"
+        viewBox="0 0 52 52"
+        aria-hidden="true"
+      >
+        <circle class="spinner-track" cx="26" cy="26" r="20"></circle>
+        <circle class="spinner-head" cx="26" cy="26" r="20"></circle>
+      </svg>
+
+      <p id="loadingTitle" class="loading-title">배송정보 저장 중</p>
+      <p id="loadingDescription" class="loading-description">
+        안전하게 저장하고 있습니다.<br>화면을 닫거나 다른 항목을 누르지 마세요.
+      </p>
+    </div>
+  </div>
+
+  <div
+    id="completionModal"
+    class="completion-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="completionTitle"
+    aria-describedby="completionDescription"
+    aria-hidden="true"
+  >
+    <section class="completion-card">
+      <div class="completion-icon" aria-hidden="true">✓</div>
+      <h2 id="completionTitle" class="completion-title">저장 완료</h2>
+      <p id="completionDescription" class="completion-description">
+        배송정보가 안전하게 저장되었습니다.<br>
+        확인을 누르면 새로운 입력을 위해 화면이 초기화됩니다.
+      </p>
+      <button
+        type="button"
+        id="completionConfirmButton"
+        class="completion-confirm-button"
+      >
+        확인
+      </button>
+    </section>
+  </div>
+
   <!-- Kakao 우편번호 서비스: 별도의 앱 키 없이 사용 -->
   <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
@@ -741,7 +942,12 @@
     const postcodeCloseButton = document.getElementById("postcodeCloseButton");
     const postcodeBackdrop = document.getElementById("postcodeBackdrop");
 
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const completionModal = document.getElementById("completionModal");
+    const completionConfirmButton = document.getElementById("completionConfirmButton");
+
     let isSubmitting = false;
+    let submitTimeoutId = null;
     let isPostcodeOpen = false;
 
     addressSearchButton.addEventListener("click", openPostcodeSearch);
@@ -751,6 +957,8 @@
     postcodeBackdrop.addEventListener("click", function () {
       closePostcodeSearch(true);
     });
+
+    completionConfirmButton.addEventListener("click", resetFormAfterCompletion);
 
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && isPostcodeOpen) {
@@ -799,9 +1007,7 @@
         return;
       }
 
-      isSubmitting = true;
-      submitButton.disabled = true;
-      submitButton.textContent = "저장 중...";
+      startSubmittingState();
     });
 
     window.addEventListener("message", function (event) {
@@ -814,26 +1020,89 @@
         return;
       }
 
+      finishSubmittingState();
+
+      if (event.data.success) {
+        showCompletionModal();
+      } else {
+        showSubmitError(
+          event.data.message ||
+          "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+        );
+      }
+    });
+
+    function startSubmittingState() {
+      isSubmitting = true;
+      submitButton.disabled = true;
+      submitButton.textContent = "저장 중...";
+
+      loadingOverlay.classList.add("show");
+      loadingOverlay.setAttribute("aria-hidden", "false");
+      document.body.classList.add("ui-locked");
+
+      submitTimeoutId = window.setTimeout(function () {
+        if (!isSubmitting) {
+          return;
+        }
+
+        finishSubmittingState();
+        showSubmitError(
+          "응답 시간이 길어지고 있습니다. 인터넷 연결과 저장 여부를 확인한 뒤 다시 시도해 주세요."
+        );
+      }, 30000);
+    }
+
+    function finishSubmittingState() {
       isSubmitting = false;
       submitButton.disabled = false;
       submitButton.textContent = "배송정보 저장";
 
-      if (event.data.success) {
-        form.reset();
-        deliveryAddress.value = "";
-        clearAllErrors();
-        resultMessage.textContent = "배송정보가 정상적으로 저장되었습니다.";
-        resultMessage.classList.remove("error");
-        resultMessage.classList.add("show");
-        resultMessage.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else {
-        resultMessage.textContent =
-          event.data.message ||
-          "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
-        resultMessage.classList.add("error", "show");
-        resultMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (submitTimeoutId) {
+        window.clearTimeout(submitTimeoutId);
+        submitTimeoutId = null;
       }
-    });
+
+      loadingOverlay.classList.remove("show");
+      loadingOverlay.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("ui-locked");
+    }
+
+    function showCompletionModal() {
+      completionModal.classList.add("show");
+      completionModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("ui-locked");
+
+      window.setTimeout(function () {
+        completionConfirmButton.focus({ preventScroll: true });
+      }, 60);
+    }
+
+    function resetFormAfterCompletion() {
+      completionModal.classList.remove("show");
+      completionModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("ui-locked");
+
+      form.reset();
+      deliveryPostcode.value = "";
+      deliveryBaseAddress.value = "";
+      deliveryDetailAddress.value = "";
+      deliveryAddress.value = "";
+      clearAllErrors();
+      resultMessage.classList.remove("show", "error");
+      resultMessage.textContent = "배송정보가 정상적으로 저장되었습니다.";
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.setTimeout(function () {
+        customerName.focus({ preventScroll: true });
+      }, 320);
+    }
+
+    function showSubmitError(message) {
+      resultMessage.textContent = message;
+      resultMessage.classList.add("error", "show");
+      resultMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
     function openPostcodeSearch() {
       clearAddressError();
