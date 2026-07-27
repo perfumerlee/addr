@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- PHONE911 Simple Form v0.09 -->
+  <!-- PHONE911 Simple Form v0.11 -->
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#111113">
   <meta name="format-detection" content="telephone=no, address=no, email=no">
 
-  <title>배송정보 입력 | PHONE911 v0.09</title>
+  <title>배송정보 입력 | PHONE911 v0.11</title>
 
   <style>
     :root {
@@ -241,6 +241,17 @@
       background: var(--error-soft);
     }
 
+    .field input.valid {
+      border-color: #12b76a;
+      background: #f6fef9;
+    }
+
+    .field input[readonly].valid {
+      border-color: #12b76a;
+      background: #f0faf4;
+      -webkit-text-fill-color: #344054;
+    }
+
     .address-search-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 112px;
@@ -320,6 +331,11 @@
     .consent-field.error {
       border-color: var(--error);
       background: var(--error-soft);
+    }
+
+    .consent-field.valid {
+      border-color: #12b76a;
+      background: #f6fef9;
     }
 
     .consent-label {
@@ -802,7 +818,7 @@
     -->
     <form
       id="deliveryForm"
-      action="https://script.google.com/macros/s/AKfycbwXwwP_uG_WB5cLP2M0Au3b4lYH3zgxrKB7UzVwuoRMfDZImoF5Fyz5E0Dh3ANG_1yH/exec"
+      action="https://script.google.com/macros/s/AKfycbxKnxAGzBMuSnnRynXtMwYRzZnB0aDPwlQEP_qRBAuzxFCO9ttZR7uEF_h6DibZmPSn/exec"
       method="POST"
       target="submitFrame"
       novalidate
@@ -820,10 +836,12 @@
           maxlength="30"
           autocomplete="name"
           enterkeyhint="next"
+          aria-describedby="customerNameError"
+          aria-invalid="false"
           required
         >
 
-        <div class="error-message" id="customerNameError"></div>
+        <div class="error-message" id="customerNameError" role="status" aria-live="polite"></div>
       </div>
 
       <div class="field">
@@ -840,10 +858,12 @@
           inputmode="tel"
           autocomplete="tel"
           enterkeyhint="next"
+          aria-describedby="customerPhoneError"
+          aria-invalid="false"
           required
         >
 
-        <div class="error-message" id="customerPhoneError"></div>
+        <div class="error-message" id="customerPhoneError" role="status" aria-live="polite"></div>
       </div>
 
       <div class="field">
@@ -860,6 +880,8 @@
             maxlength="5"
             inputmode="numeric"
             autocomplete="postal-code"
+            aria-describedby="deliveryAddressError"
+            aria-invalid="false"
             readonly
             required
           >
@@ -881,6 +903,8 @@
           placeholder="주소 검색을 눌러 주세요"
           maxlength="150"
           autocomplete="address-line1"
+          aria-describedby="deliveryAddressError"
+          aria-invalid="false"
           readonly
           required
         >
@@ -894,6 +918,8 @@
           maxlength="100"
           autocomplete="address-line2"
           enterkeyhint="done"
+          aria-describedby="deliveryAddressError"
+          aria-invalid="false"
           required
         >
 
@@ -915,7 +941,7 @@
           주소 검색 후 동·호수 등 상세주소를 입력해 주세요.
         </p>
 
-        <div class="error-message" id="deliveryAddressError"></div>
+        <div class="error-message" id="deliveryAddressError" role="status" aria-live="polite"></div>
       </div>
 
       <div id="privacyConsentField" class="consent-field">
@@ -926,6 +952,8 @@
             name="privacyConsent"
             value="Y"
             class="consent-checkbox"
+            aria-describedby="privacyConsentError"
+            aria-invalid="false"
             required
           >
           <span>
@@ -937,7 +965,7 @@
           입력한 정보는 상품 배송 및 배송 관련 안내를 위해 사용됩니다.
         </p>
 
-        <div class="error-message" id="privacyConsentError"></div>
+        <div class="error-message" id="privacyConsentError" role="status" aria-live="polite"></div>
       </div>
 
       <button
@@ -958,7 +986,7 @@
       </div>
     </form>
 
-    <div class="version">PHONE911 Simple Form v0.09</div>
+    <div class="version">PHONE911 Simple Form v0.11</div>
   </main>
 
   <iframe
@@ -1087,6 +1115,16 @@
     let activeSubmissionToken = "";
     let hasHandledSubmissionResponse = false;
 
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    document.addEventListener("DOMContentLoaded", moveViewportToTop, {
+      once: true
+    });
+    window.addEventListener("load", moveViewportToTop, { once: true });
+    window.addEventListener("pageshow", moveViewportToTop);
+
     addressSearchButton.addEventListener("click", openPostcodeSearch);
     postcodeCloseButton.addEventListener("click", function () {
       closePostcodeSearch(true);
@@ -1104,35 +1142,53 @@
     });
 
     customerPhone.addEventListener("input", function () {
-      const numbers = this.value.replace(/\D/g, "").slice(0, 11);
+      this.value = formatKoreanPhone(this.value);
+      this.classList.remove("valid");
 
-      if (numbers.length <= 3) {
-        this.value = numbers;
-      } else if (numbers.length <= 7) {
-        this.value = numbers.slice(0, 3) + "-" + numbers.slice(3);
+      if (this.classList.contains("error")) {
+        validateCustomerPhone(true);
       } else {
-        this.value =
-          numbers.slice(0, 3) +
-          "-" +
-          numbers.slice(3, 7) +
-          "-" +
-          numbers.slice(7);
+        this.setAttribute("aria-invalid", "false");
       }
+    });
 
-      clearFieldError(this);
+    customerPhone.addEventListener("blur", function () {
+      this.value = formatKoreanPhone(this.value);
+      validateCustomerPhone(true);
     });
 
     customerName.addEventListener("input", function () {
-      clearFieldError(this);
+      this.classList.remove("valid");
+
+      if (this.classList.contains("error")) {
+        validateCustomerName(true);
+      } else {
+        this.setAttribute("aria-invalid", "false");
+      }
+    });
+
+    customerName.addEventListener("blur", function () {
+      this.value = normalizeWhitespace(this.value);
+      validateCustomerName(true);
     });
 
     deliveryDetailAddress.addEventListener("input", function () {
       updateFullAddress();
-      clearAddressError();
+      this.classList.remove("valid");
+
+      if (this.classList.contains("error")) {
+        validateDeliveryAddress(true);
+      }
+    });
+
+    deliveryDetailAddress.addEventListener("blur", function () {
+      this.value = normalizeWhitespace(this.value);
+      updateFullAddress();
+      validateDeliveryAddress(true);
     });
 
     privacyConsent.addEventListener("change", function () {
-      clearConsentError();
+      validatePrivacyConsent(true);
     });
 
     form.addEventListener("submit", function (event) {
@@ -1230,7 +1286,27 @@
       }, 60);
     }
 
+    function moveViewportToTop() {
+      function applyTopPosition() {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      }
+
+      applyTopPosition();
+      window.requestAnimationFrame(applyTopPosition);
+      window.setTimeout(applyTopPosition, 60);
+      window.setTimeout(applyTopPosition, 220);
+    }
+
     function resetFormAfterCompletion() {
+      if (
+        document.activeElement &&
+        typeof document.activeElement.blur === "function"
+      ) {
+        document.activeElement.blur();
+      }
+
       completionModal.classList.remove("show");
       completionModal.setAttribute("aria-hidden", "true");
       document.body.classList.remove("ui-locked");
@@ -1245,10 +1321,12 @@
       resultMessage.classList.remove("show", "error");
       resultMessage.textContent = "배송정보가 정상적으로 저장되었습니다.";
 
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      moveViewportToTop();
+
       window.setTimeout(function () {
+        moveViewportToTop();
         customerName.focus({ preventScroll: true });
-      }, 320);
+      }, 260);
     }
 
     function showSubmitError(message) {
@@ -1386,7 +1464,7 @@
       deliveryBaseAddress.value = baseAddress;
       deliveryDetailAddress.value = "";
       updateFullAddress();
-      clearAddressError();
+      validateDeliveryAddress(false);
     }
 
     function closePostcodeSearch(restoreFocus) {
@@ -1410,43 +1488,240 @@
         .join(" ");
     }
 
-    function validateForm() {
-      let isValid = true;
-      clearAllErrors();
+    function normalizeWhitespace(value) {
+      return String(value || "").replace(/\s+/g, " ").trim();
+    }
 
-      if (!customerName.value.trim()) {
-        showFieldError(customerName, "이름을 입력해 주세요.");
-        isValid = false;
+    function formatKoreanPhone(value) {
+      const numbers = String(value || "").replace(/\D/g, "").slice(0, 11);
+
+      if (!numbers) {
+        return "";
       }
 
-      const phoneNumbers = customerPhone.value.replace(/\D/g, "");
+      if (numbers.startsWith("02")) {
+        if (numbers.length <= 2) {
+          return numbers;
+        }
 
-      if (!phoneNumbers) {
-        showFieldError(customerPhone, "연락처를 입력해 주세요.");
-        isValid = false;
-      } else if (phoneNumbers.length < 10) {
-        showFieldError(customerPhone, "연락처를 정확하게 입력해 주세요.");
-        isValid = false;
+        if (numbers.length <= 5) {
+          return numbers.slice(0, 2) + "-" + numbers.slice(2);
+        }
+
+        if (numbers.length <= 9) {
+          return (
+            numbers.slice(0, 2) + "-" +
+            numbers.slice(2, 5) + "-" +
+            numbers.slice(5)
+          );
+        }
+
+        return (
+          numbers.slice(0, 2) + "-" +
+          numbers.slice(2, 6) + "-" +
+          numbers.slice(6, 10)
+        );
       }
 
-      if (!deliveryPostcode.value.trim() || !deliveryBaseAddress.value.trim()) {
-        showAddressError("주소 검색을 통해 배송지 주소를 선택해 주세요.");
-        isValid = false;
-      } else if (!deliveryDetailAddress.value.trim()) {
-        showAddressError("상세주소를 입력해 주세요.");
-        deliveryDetailAddress.classList.add("error");
-        isValid = false;
+      if (numbers.length <= 3) {
+        return numbers;
       }
+
+      if (numbers.length <= 6) {
+        return numbers.slice(0, 3) + "-" + numbers.slice(3);
+      }
+
+      if (numbers.length <= 10) {
+        return (
+          numbers.slice(0, 3) + "-" +
+          numbers.slice(3, 6) + "-" +
+          numbers.slice(6)
+        );
+      }
+
+      return (
+        numbers.slice(0, 3) + "-" +
+        numbers.slice(3, 7) + "-" +
+        numbers.slice(7, 11)
+      );
+    }
+
+    function isValidKoreanPhone(numbers) {
+      if (/^02\d{7,8}$/.test(numbers)) {
+        return true;
+      }
+
+      if (/^010\d{8}$/.test(numbers)) {
+        return true;
+      }
+
+      if (/^01[16789]\d{7,8}$/.test(numbers)) {
+        return true;
+      }
+
+      return /^(?:03[1-3]|04[1-4]|05[0-5]|06[1-4]|070|080)\d{7,8}$/.test(numbers);
+    }
+
+    function validateCustomerName(showError) {
+      const value = normalizeWhitespace(customerName.value);
+      const hasNameCharacter = /[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z\u3040-\u30ff\u3400-\u9fff]/.test(value);
+      const hasOnlyAllowedCharacters = /^[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z\u3040-\u30ff\u3400-\u9fff\s.'·-]+$/.test(value);
+
+      if (!value) {
+        return setFieldValidation(
+          customerName,
+          false,
+          "이름을 입력해 주세요.",
+          showError
+        );
+      }
+
+      if (value.length > 30) {
+        return setFieldValidation(
+          customerName,
+          false,
+          "이름은 30자 이내로 입력해 주세요.",
+          showError
+        );
+      }
+
+      if (!hasNameCharacter || !hasOnlyAllowedCharacters) {
+        return setFieldValidation(
+          customerName,
+          false,
+          "이름에는 문자, 공백, 하이픈만 사용할 수 있습니다.",
+          showError
+        );
+      }
+
+      customerName.value = value;
+      return setFieldValidation(customerName, true, "", showError);
+    }
+
+    function validateCustomerPhone(showError) {
+      const numbers = customerPhone.value.replace(/\D/g, "");
+
+      if (!numbers) {
+        return setFieldValidation(
+          customerPhone,
+          false,
+          "연락처를 입력해 주세요.",
+          showError
+        );
+      }
+
+      if (!isValidKoreanPhone(numbers)) {
+        return setFieldValidation(
+          customerPhone,
+          false,
+          "국내 연락처 형식을 정확하게 입력해 주세요.",
+          showError
+        );
+      }
+
+      customerPhone.value = formatKoreanPhone(numbers);
+      return setFieldValidation(customerPhone, true, "", showError);
+    }
+
+    function validateDeliveryAddress(showError) {
+      const postcode = deliveryPostcode.value.trim();
+      const baseAddress = normalizeWhitespace(deliveryBaseAddress.value);
+      const detailAddress = normalizeWhitespace(deliveryDetailAddress.value);
+      const detailHasContent = /[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9\u3040-\u30ff\u3400-\u9fff]/.test(detailAddress);
+
+      clearAddressError();
+
+      if (!/^\d{5}$/.test(postcode) || baseAddress.length < 5) {
+        if (showError) {
+          deliveryPostcode.classList.add("error");
+          deliveryBaseAddress.classList.add("error");
+          deliveryPostcode.setAttribute("aria-invalid", "true");
+          deliveryBaseAddress.setAttribute("aria-invalid", "true");
+          document.getElementById("deliveryAddressError").textContent =
+            "주소 검색을 통해 정확한 배송지 주소를 선택해 주세요.";
+        }
+        return false;
+      }
+
+      deliveryPostcode.classList.add("valid");
+      deliveryBaseAddress.classList.add("valid");
+      deliveryPostcode.setAttribute("aria-invalid", "false");
+      deliveryBaseAddress.setAttribute("aria-invalid", "false");
+
+      if (!detailAddress) {
+        if (showError) {
+          deliveryDetailAddress.classList.add("error");
+          deliveryDetailAddress.setAttribute("aria-invalid", "true");
+          document.getElementById("deliveryAddressError").textContent =
+            "동·호수 등 상세주소를 입력해 주세요.";
+        }
+        return false;
+      }
+
+      if (!detailHasContent || detailAddress.length > 100) {
+        if (showError) {
+          deliveryDetailAddress.classList.add("error");
+          deliveryDetailAddress.setAttribute("aria-invalid", "true");
+          document.getElementById("deliveryAddressError").textContent =
+            "상세주소를 정확하게 입력해 주세요.";
+        }
+        return false;
+      }
+
+      deliveryBaseAddress.value = baseAddress;
+      deliveryDetailAddress.value = detailAddress;
+      deliveryDetailAddress.classList.add("valid");
+      deliveryDetailAddress.setAttribute("aria-invalid", "false");
+      updateFullAddress();
+      return true;
+    }
+
+    function validatePrivacyConsent(showError) {
+      privacyConsentField.classList.remove("error", "valid");
 
       if (!privacyConsent.checked) {
-        showConsentError("개인정보 수집 및 이용에 동의해 주세요.");
-        isValid = false;
+        privacyConsent.setAttribute("aria-invalid", "true");
+
+        if (showError) {
+          privacyConsentField.classList.add("error");
+          document.getElementById("privacyConsentError").textContent =
+            "개인정보 수집 및 이용에 동의해 주세요.";
+        }
+        return false;
       }
 
+      privacyConsent.setAttribute("aria-invalid", "false");
+      privacyConsentField.classList.add("valid");
+      document.getElementById("privacyConsentError").textContent = "";
+      return true;
+    }
+
+    function validateForm() {
+      clearAllErrors();
+
+      const isNameValid = validateCustomerName(true);
+      const isPhoneValid = validateCustomerPhone(true);
+      const isAddressValid = validateDeliveryAddress(true);
+      const isConsentValid = validatePrivacyConsent(true);
+      const isValid =
+        isNameValid && isPhoneValid && isAddressValid && isConsentValid;
+
       if (!isValid) {
-        const firstErrorField =
-          document.querySelector("input.error") ||
-          (!privacyConsent.checked ? privacyConsent : null);
+        let firstErrorField = null;
+
+        if (!isNameValid) {
+          firstErrorField = customerName;
+        } else if (!isPhoneValid) {
+          firstErrorField = customerPhone;
+        } else if (!isAddressValid) {
+          firstErrorField =
+            !/^\d{5}$/.test(deliveryPostcode.value.trim()) ||
+            deliveryBaseAddress.value.trim().length < 5
+              ? addressSearchButton
+              : deliveryDetailAddress;
+        } else if (!isConsentValid) {
+          firstErrorField = privacyConsent;
+        }
 
         if (firstErrorField) {
           firstErrorField.focus({ preventScroll: true });
@@ -1460,17 +1735,39 @@
       return isValid;
     }
 
-    function showFieldError(field, message) {
-      field.classList.add("error");
+    function setFieldValidation(field, isValid, message, showError) {
       const errorElement = document.getElementById(field.id + "Error");
+      field.classList.remove("error", "valid");
 
-      if (errorElement) {
-        errorElement.textContent = message;
+      if (isValid) {
+        field.classList.add("valid");
+        field.setAttribute("aria-invalid", "false");
+
+        if (errorElement) {
+          errorElement.textContent = "";
+        }
+        return true;
       }
+
+      field.setAttribute("aria-invalid", "true");
+
+      if (showError) {
+        field.classList.add("error");
+
+        if (errorElement) {
+          errorElement.textContent = message;
+        }
+      }
+      return false;
+    }
+
+    function showFieldError(field, message) {
+      setFieldValidation(field, false, message, true);
     }
 
     function clearFieldError(field) {
-      field.classList.remove("error");
+      field.classList.remove("error", "valid");
+      field.setAttribute("aria-invalid", "false");
       const errorElement = document.getElementById(field.id + "Error");
 
       if (errorElement) {
@@ -1479,25 +1776,34 @@
     }
 
     function showAddressError(message) {
+      clearAddressError();
       deliveryPostcode.classList.add("error");
       deliveryBaseAddress.classList.add("error");
+      deliveryPostcode.setAttribute("aria-invalid", "true");
+      deliveryBaseAddress.setAttribute("aria-invalid", "true");
       document.getElementById("deliveryAddressError").textContent = message;
     }
 
     function clearAddressError() {
-      deliveryPostcode.classList.remove("error");
-      deliveryBaseAddress.classList.remove("error");
-      deliveryDetailAddress.classList.remove("error");
+      [deliveryPostcode, deliveryBaseAddress, deliveryDetailAddress].forEach(
+        function (field) {
+          field.classList.remove("error", "valid");
+          field.setAttribute("aria-invalid", "false");
+        }
+      );
       document.getElementById("deliveryAddressError").textContent = "";
     }
 
     function showConsentError(message) {
+      privacyConsentField.classList.remove("valid");
       privacyConsentField.classList.add("error");
+      privacyConsent.setAttribute("aria-invalid", "true");
       document.getElementById("privacyConsentError").textContent = message;
     }
 
     function clearConsentError() {
-      privacyConsentField.classList.remove("error");
+      privacyConsentField.classList.remove("error", "valid");
+      privacyConsent.setAttribute("aria-invalid", "false");
       document.getElementById("privacyConsentError").textContent = "";
     }
 
