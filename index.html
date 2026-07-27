@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- PHONE911 Simple Form v0.08 -->
+  <!-- PHONE911 Simple Form v0.09 -->
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#111113">
   <meta name="format-detection" content="telephone=no, address=no, email=no">
 
-  <title>배송정보 입력 | PHONE911 v0.08</title>
+  <title>배송정보 입력 | PHONE911 v0.09</title>
 
   <style>
     :root {
@@ -802,7 +802,7 @@
     -->
     <form
       id="deliveryForm"
-      action="https://script.google.com/macros/s/AKfycbwr2rw2rXA9dcM-YDgYLaa95Gvc54d3tFf1tB8iUjmw50xKLF4wlfVy_UfYx8brebPY/exec"
+      action="https://script.google.com/macros/s/AKfycbwXwwP_uG_WB5cLP2M0Au3b4lYH3zgxrKB7UzVwuoRMfDZImoF5Fyz5E0Dh3ANG_1yH/exec"
       method="POST"
       target="submitFrame"
       novalidate
@@ -904,6 +904,13 @@
           name="deliveryAddress"
         >
 
+        <!-- Apps Script 응답 검증용 1회성 요청 토큰 -->
+        <input
+          type="hidden"
+          id="submissionToken"
+          name="submissionToken"
+        >
+
         <p class="field-guide">
           주소 검색 후 동·호수 등 상세주소를 입력해 주세요.
         </p>
@@ -951,7 +958,7 @@
       </div>
     </form>
 
-    <div class="version">PHONE911 Simple Form v0.08</div>
+    <div class="version">PHONE911 Simple Form v0.09</div>
   </main>
 
   <iframe
@@ -1060,6 +1067,7 @@
     const deliveryBaseAddress = document.getElementById("deliveryBaseAddress");
     const deliveryDetailAddress = document.getElementById("deliveryDetailAddress");
     const deliveryAddress = document.getElementById("deliveryAddress");
+    const submissionToken = document.getElementById("submissionToken");
     const addressSearchButton = document.getElementById("addressSearchButton");
     const privacyConsent = document.getElementById("privacyConsent");
     const privacyConsentField = document.getElementById("privacyConsentField");
@@ -1076,6 +1084,8 @@
     let isSubmitting = false;
     let submitTimeoutId = null;
     let isPostcodeOpen = false;
+    let activeSubmissionToken = "";
+    let hasHandledSubmissionResponse = false;
 
     addressSearchButton.addEventListener("click", openPostcodeSearch);
     postcodeCloseButton.addEventListener("click", function () {
@@ -1126,6 +1136,11 @@
     });
 
     form.addEventListener("submit", function (event) {
+      if (isSubmitting) {
+        event.preventDefault();
+        return;
+      }
+
       resultMessage.classList.remove("show", "error");
       updateFullAddress();
 
@@ -1134,26 +1149,35 @@
         return;
       }
 
+      activeSubmissionToken = createSubmissionToken();
+      submissionToken.value = activeSubmissionToken;
+      hasHandledSubmissionResponse = false;
       startSubmittingState();
     });
 
     window.addEventListener("message", function (event) {
+      const response = normalizeResponseMessage(event.data);
+
       if (
         !isSubmitting ||
-        event.source !== submitFrame.contentWindow ||
-        !event.data ||
-        event.data.type !== "PHONE911_FORM_RESULT"
+        hasHandledSubmissionResponse ||
+        !response ||
+        response.type !== "PHONE911_FORM_RESULT" ||
+        !activeSubmissionToken ||
+        response.token !== activeSubmissionToken
       ) {
         return;
       }
 
+      hasHandledSubmissionResponse = true;
       finishSubmittingState();
 
-      if (event.data.success) {
+      if (response.success) {
         showCompletionModal();
       } else {
+        clearSubmissionToken();
         showSubmitError(
-          event.data.message ||
+          response.message ||
           "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
         );
       }
@@ -1174,10 +1198,11 @@
         }
 
         finishSubmittingState();
+        clearSubmissionToken();
         showSubmitError(
-          "응답 시간이 길어지고 있습니다. 인터넷 연결과 저장 여부를 확인한 뒤 다시 시도해 주세요."
+          "서버 응답을 확인하지 못했습니다. 구글시트 저장 여부를 먼저 확인한 뒤 다시 시도해 주세요."
         );
-      }, 30000);
+      }, 45000);
     }
 
     function finishSubmittingState() {
@@ -1215,6 +1240,7 @@
       deliveryBaseAddress.value = "";
       deliveryDetailAddress.value = "";
       deliveryAddress.value = "";
+      clearSubmissionToken();
       clearAllErrors();
       resultMessage.classList.remove("show", "error");
       resultMessage.textContent = "배송정보가 정상적으로 저장되었습니다.";
@@ -1229,6 +1255,46 @@
       resultMessage.textContent = message;
       resultMessage.classList.add("error", "show");
       resultMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function createSubmissionToken() {
+      if (
+        window.crypto &&
+        typeof window.crypto.randomUUID === "function"
+      ) {
+        return window.crypto.randomUUID();
+      }
+
+      return (
+        Date.now().toString(36) + "-" +
+        Math.random().toString(36).slice(2, 12)
+      );
+    }
+
+    function normalizeResponseMessage(data) {
+      if (!data) {
+        return null;
+      }
+
+      if (typeof data === "object") {
+        return data;
+      }
+
+      if (typeof data !== "string") {
+        return null;
+      }
+
+      try {
+        return JSON.parse(data);
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function clearSubmissionToken() {
+      activeSubmissionToken = "";
+      submissionToken.value = "";
+      hasHandledSubmissionResponse = false;
     }
 
     function openPostcodeSearch() {
