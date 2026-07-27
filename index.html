@@ -3,29 +3,33 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- PHONE911 Simple Form v0.07 -->
+  <!-- PHONE911 Simple Form v0.08 -->
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
   >
-  <meta name="theme-color" content="#324f3e">
+  <meta name="theme-color" content="#111113">
   <meta name="format-detection" content="telephone=no, address=no, email=no">
 
-  <title>배송정보 입력 | PHONE911 v0.07</title>
+  <title>배송정보 입력 | PHONE911 v0.08</title>
 
   <style>
     :root {
-      --bg: #f5f5f2;
-      --card: #ffffff;
-      --text: #20231f;
-      --sub-text: #767b74;
-      --line: #dcded9;
-      --readonly: #f3f4f1;
-      --point: #324f3e;
-      --point-hover: #263e31;
-      --error: #c54242;
-      --success-bg: #eef5f0;
-      --success-text: #2e6041;
+      --page: #f4f4f6;
+      --surface: #ffffff;
+      --surface-soft: #f7f7f8;
+      --ink: #111113;
+      --muted: #6e6e73;
+      --line: #dedee3;
+      --line-strong: #c7c7cc;
+      --readonly: #f1f1f3;
+      --brand: #111113;
+      --accent: #2864ff;
+      --accent-soft: #edf3ff;
+      --error: #d92d20;
+      --error-soft: #fff4f2;
+      --success: #027a48;
+      --success-soft: #ecfdf3;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-right: env(safe-area-inset-right, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -42,10 +46,10 @@
       width: 100%;
       min-width: 320px;
       min-height: 100%;
-      background: var(--bg);
+      background: var(--page);
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
-      scroll-padding-top: 16px;
+      scroll-padding-top: 20px;
     }
 
     body {
@@ -55,20 +59,22 @@
       min-height: 100svh;
       margin: 0;
       padding:
-        max(16px, var(--safe-top))
-        max(16px, var(--safe-right))
-        max(16px, var(--safe-bottom))
-        max(16px, var(--safe-left));
+        max(24px, var(--safe-top))
+        max(20px, var(--safe-right))
+        max(24px, var(--safe-bottom))
+        max(20px, var(--safe-left));
       display: grid;
       place-items: center;
       overflow-x: hidden;
-      background: var(--bg);
-      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -20%, #ffffff 0, transparent 42%),
+        var(--page);
+      color: var(--ink);
       font-family:
-        Pretendard,
         -apple-system,
         BlinkMacSystemFont,
         "Apple SD Gothic Neo",
+        Pretendard,
         "Noto Sans KR",
         "Segoe UI",
         sans-serif;
@@ -99,225 +105,306 @@
 
     .form-card {
       width: 100%;
-      max-width: 480px;
-      padding: 34px 28px 28px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--card);
-      box-shadow: 0 12px 36px rgba(20, 30, 23, 0.06);
+      max-width: 520px;
+      padding: 38px 36px 30px;
+      border: 1px solid rgba(17, 17, 19, 0.08);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow:
+        0 24px 70px rgba(17, 17, 19, 0.10),
+        0 2px 8px rgba(17, 17, 19, 0.04);
     }
 
     .brand {
-      margin-bottom: 26px;
-      text-align: center;
+      margin-bottom: 32px;
+      text-align: left;
+    }
+
+    .brand-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 30px;
     }
 
     .brand-name {
-      margin: 0 0 8px;
-      font-size: clamp(24px, 7vw, 28px);
+      margin: 0;
+      color: var(--brand);
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.055em;
+      text-transform: lowercase;
+    }
+
+    .brand-name span {
+      color: var(--accent);
+    }
+
+    .brand-chip {
+      display: inline-flex;
+      min-height: 28px;
+      padding: 0 11px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 11px;
       font-weight: 700;
-      line-height: 1.2;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .form-title {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: clamp(28px, 6.5vw, 34px);
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -0.045em;
     }
 
     .brand-description {
+      max-width: 360px;
       margin: 0;
-      color: var(--sub-text);
+      color: var(--muted);
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.65;
+      letter-spacing: -0.01em;
+    }
+
+    #deliveryForm {
+      display: block;
     }
 
     .field {
-      margin-bottom: 18px;
-      scroll-margin-top: 18px;
+      margin: 0 0 24px;
+      scroll-margin-top: 20px;
     }
 
     .field label {
       display: block;
-      margin-bottom: 8px;
+      margin: 0 0 9px;
+      color: var(--ink);
       font-size: 14px;
       font-weight: 700;
       line-height: 1.4;
+      letter-spacing: -0.015em;
     }
 
     .required {
       margin-left: 3px;
-      color: var(--error);
+      color: var(--accent);
     }
 
     .field input {
       width: 100%;
-      min-height: 52px;
-      padding: 13px 14px;
+      min-height: 56px;
+      padding: 15px 16px;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 14px;
       outline: none;
-      background: #fff;
-      color: var(--text);
+      background: var(--surface);
+      color: var(--ink);
       font-size: 16px;
       line-height: 1.35;
+      letter-spacing: -0.01em;
       transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
     }
 
     .field input::placeholder {
-      color: #9a9e98;
+      color: #9a9aa1;
       opacity: 1;
     }
 
     .field input[readonly] {
       background: var(--readonly);
-      color: var(--text);
+      color: #515158;
       cursor: default;
       opacity: 1;
-      -webkit-text-fill-color: var(--text);
+      -webkit-text-fill-color: #515158;
     }
 
     .field input:focus-visible {
-      border-color: var(--point);
-      box-shadow: 0 0 0 3px rgba(50, 79, 62, 0.1);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(40, 100, 255, 0.12);
     }
 
     .field input.error {
       border-color: var(--error);
+      background: var(--error-soft);
     }
 
     .address-search-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 108px;
-      gap: 8px;
+      grid-template-columns: minmax(0, 1fr) 112px;
+      gap: 10px;
     }
 
     .address-search-button {
       min-width: 0;
-      min-height: 52px;
-      padding: 0 12px;
-      border: 1px solid var(--point);
-      border-radius: 10px;
-      background: #fff;
-      color: var(--point);
+      min-height: 56px;
+      padding: 0 14px;
+      border: 1px solid var(--ink);
+      border-radius: 14px;
+      background: var(--ink);
+      color: #fff;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 750;
       line-height: 1;
+      letter-spacing: -0.02em;
       white-space: nowrap;
       cursor: pointer;
       transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        transform 0.1s ease;
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.1s ease,
+        opacity 0.18s ease;
+    }
+
+    .address-search-button:focus-visible,
+    .submit-button:focus-visible,
+    .completion-confirm-button:focus-visible,
+    .postcode-close-button:focus-visible {
+      outline: 4px solid rgba(40, 100, 255, 0.20);
+      outline-offset: 2px;
     }
 
     .address-search-button:active,
     .submit-button:active,
-    .postcode-close-button:active {
+    .postcode-close-button:active,
+    .completion-confirm-button:active {
       transform: scale(0.985);
     }
 
-    .address-input + .address-input {
-      margin-top: 8px;
+    .address-input {
+      margin-top: 10px;
     }
 
     .field-guide {
-      margin: 7px 0 0;
-      color: var(--sub-text);
+      margin: 9px 2px 0;
+      color: var(--muted);
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
     }
 
     .error-message {
-      min-height: 18px;
-      margin-top: 6px;
+      margin: 8px 2px 0;
       color: var(--error);
       font-size: 12px;
+      font-weight: 600;
       line-height: 1.5;
     }
 
+    .error-message:empty {
+      display: none;
+    }
+
     .consent-field {
-      margin: 2px 0 18px;
-      padding: 14px;
+      margin: 2px 0 26px;
+      padding: 16px;
       border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fafbf9;
-      scroll-margin-top: 18px;
+      border-radius: 14px;
+      background: var(--surface-soft);
+      scroll-margin-top: 20px;
+      transition: border-color 0.18s ease, background 0.18s ease;
     }
 
     .consent-field.error {
       border-color: var(--error);
-      background: #fffafa;
+      background: var(--error-soft);
     }
 
     .consent-label {
       display: flex;
       align-items: flex-start;
-      gap: 10px;
-      color: var(--text);
+      gap: 11px;
+      color: var(--ink);
       font-size: 14px;
-      font-weight: 600;
+      font-weight: 700;
       line-height: 1.5;
+      letter-spacing: -0.015em;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
 
     .consent-checkbox {
-      width: 21px;
-      min-width: 21px;
-      height: 21px;
-      min-height: 21px;
+      width: 22px;
+      min-width: 22px;
+      height: 22px;
+      min-height: 22px;
       margin: 0;
-      flex: 0 0 21px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      accent-color: var(--point);
+      flex: 0 0 22px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      accent-color: var(--accent);
       -webkit-appearance: checkbox;
       appearance: auto;
       cursor: pointer;
     }
 
     .consent-checkbox:focus-visible {
-      outline: 3px solid rgba(50, 79, 62, 0.16);
+      outline: 4px solid rgba(40, 100, 255, 0.18);
       outline-offset: 2px;
     }
 
     .consent-note {
-      margin: 8px 0 0 31px;
-      color: var(--sub-text);
+      margin: 8px 0 0 33px;
+      color: var(--muted);
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.55;
+      letter-spacing: -0.01em;
+    }
+
+    .consent-field .error-message {
+      margin-left: 33px;
     }
 
     .submit-button {
       width: 100%;
-      min-height: 54px;
-      margin-top: 4px;
-      padding: 0 16px;
+      min-height: 58px;
+      margin: 0;
+      padding: 0 18px;
       border: 0;
-      border-radius: 10px;
-      background: var(--point);
+      border-radius: 15px;
+      background: var(--ink);
       color: #fff;
       font-size: 16px;
-      font-weight: 700;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -0.02em;
       cursor: pointer;
+      box-shadow: 0 8px 20px rgba(17, 17, 19, 0.16);
       transition:
-        background 0.2s ease,
-        opacity 0.2s ease,
-        transform 0.1s ease;
+        background 0.18s ease,
+        opacity 0.18s ease,
+        transform 0.1s ease,
+        box-shadow 0.18s ease;
     }
 
     .submit-button:disabled {
-      opacity: 0.55;
+      opacity: 0.48;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
     .result-message {
       display: none;
-      margin-top: 18px;
-      padding: 14px;
-      border-radius: 10px;
-      background: var(--success-bg);
-      color: var(--success-text);
-      font-size: 14px;
+      margin-top: 16px;
+      padding: 14px 16px;
+      border: 1px solid #abefc6;
+      border-radius: 12px;
+      background: var(--success-soft);
+      color: var(--success);
+      font-size: 13px;
+      font-weight: 600;
       line-height: 1.6;
       text-align: center;
     }
@@ -327,15 +414,17 @@
     }
 
     .result-message.error {
-      background: #fff1f1;
+      border-color: #fecdca;
+      background: var(--error-soft);
       color: var(--error);
     }
 
     .version {
-      margin-top: 22px;
-      color: #a0a49f;
-      font-size: 11px;
+      margin-top: 24px;
+      color: #a0a0a7;
+      font-size: 10px;
       line-height: 1.4;
+      letter-spacing: 0.04em;
       text-align: center;
     }
 
@@ -343,7 +432,6 @@
       display: none;
     }
 
-    /* 저장 중 화면 잠금 */
     .loading-overlay,
     .completion-modal {
       display: none;
@@ -354,10 +442,10 @@
       height: 100vh;
       height: 100dvh;
       padding:
-        max(18px, var(--safe-top))
-        max(18px, var(--safe-right))
-        max(18px, var(--safe-bottom))
-        max(18px, var(--safe-left));
+        max(20px, var(--safe-top))
+        max(20px, var(--safe-right))
+        max(20px, var(--safe-bottom))
+        max(20px, var(--safe-left));
       align-items: center;
       justify-content: center;
     }
@@ -369,26 +457,32 @@
 
     .loading-overlay {
       z-index: 30000;
-      background: rgba(20, 25, 21, 0.72);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
+      background: rgba(10, 10, 12, 0.72);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
       cursor: wait;
     }
 
-    .loading-card {
-      width: min(290px, 100%);
-      padding: 28px 22px 24px;
-      border-radius: 16px;
+    .loading-card,
+    .completion-card {
+      width: min(360px, 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
       background: #fff;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.30);
       text-align: center;
+    }
+
+    .loading-card {
+      width: min(300px, 100%);
+      padding: 30px 24px 26px;
     }
 
     .loading-spinner {
       width: 52px;
       height: 52px;
-      margin: 0 auto 17px;
-      animation: loadingRotate 0.9s linear infinite;
+      margin: 0 auto 18px;
+      animation: loadingRotate 0.82s linear infinite;
     }
 
     .loading-spinner circle {
@@ -398,86 +492,82 @@
     }
 
     .loading-spinner .spinner-track {
-      stroke: #e4e8e3;
+      stroke: #e6e6ea;
     }
 
     .loading-spinner .spinner-head {
-      stroke: var(--point);
+      stroke: var(--accent);
       stroke-dasharray: 72 140;
     }
 
     .loading-title {
-      margin: 0 0 7px;
-      font-size: 17px;
+      margin: 0 0 8px;
+      font-size: 18px;
       font-weight: 800;
       line-height: 1.35;
+      letter-spacing: -0.035em;
     }
 
     .loading-description {
       margin: 0;
-      color: var(--sub-text);
+      color: var(--muted);
       font-size: 13px;
-      line-height: 1.6;
+      line-height: 1.65;
+      letter-spacing: -0.015em;
     }
 
     @keyframes loadingRotate {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
     }
 
-    /* 저장 완료 모달 */
     .completion-modal {
       z-index: 29000;
-      background: rgba(20, 25, 21, 0.62);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
+      background: rgba(10, 10, 12, 0.66);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
     }
 
     .completion-card {
-      width: min(360px, 100%);
-      padding: 28px 22px 22px;
-      border-radius: 16px;
-      background: #fff;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.24);
-      text-align: center;
+      padding: 30px 24px 24px;
     }
 
     .completion-icon {
-      width: 58px;
-      height: 58px;
-      margin: 0 auto 17px;
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 18px;
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: var(--success-bg);
-      color: var(--success-text);
-      font-size: 31px;
-      font-weight: 800;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 30px;
+      font-weight: 900;
       line-height: 1;
     }
 
     .completion-title {
-      margin: 0 0 9px;
-      font-size: 20px;
+      margin: 0 0 10px;
+      font-size: 22px;
       font-weight: 800;
-      line-height: 1.35;
+      line-height: 1.3;
+      letter-spacing: -0.045em;
     }
 
     .completion-description {
-      margin: 0 0 22px;
-      color: var(--sub-text);
+      margin: 0 0 24px;
+      color: var(--muted);
       font-size: 14px;
-      line-height: 1.65;
+      line-height: 1.68;
+      letter-spacing: -0.015em;
     }
 
     .completion-confirm-button {
       width: 100%;
-      min-height: 52px;
+      min-height: 54px;
       padding: 0 16px;
       border: 0;
-      border-radius: 10px;
-      background: var(--point);
+      border-radius: 14px;
+      background: var(--ink);
       color: #fff;
       font-size: 16px;
       font-weight: 800;
@@ -486,11 +576,6 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    .completion-confirm-button:active {
-      transform: scale(0.985);
-    }
-
-    /* 모바일 주소 검색 레이어 */
     .postcode-layer {
       display: none;
       position: fixed;
@@ -505,32 +590,35 @@
     .postcode-backdrop {
       position: absolute;
       inset: 0;
-      background: rgba(18, 22, 19, 0.5);
+      background: rgba(10, 10, 12, 0.58);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
     }
 
     .postcode-panel {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: min(500px, calc(100% - 32px));
-      height: min(680px, calc(100dvh - 32px));
+      width: min(520px, calc(100% - 32px));
+      height: min(700px, calc(100dvh - 32px));
       max-height: calc(100vh - 32px);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
       background: #fff;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.30);
       transform: translate(-50%, -50%);
     }
 
     .postcode-header {
-      min-height: 56px;
-      padding: 0 12px 0 18px;
+      min-height: 62px;
+      padding: 0 14px 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 14px;
       border-bottom: 1px solid var(--line);
       background: #fff;
       flex: 0 0 auto;
@@ -538,19 +626,20 @@
 
     .postcode-title {
       margin: 0;
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 17px;
+      font-weight: 800;
       line-height: 1.3;
+      letter-spacing: -0.03em;
     }
 
     .postcode-close-button {
-      min-width: 54px;
+      min-width: 58px;
       min-height: 40px;
-      padding: 0 10px;
+      padding: 0 12px;
       border: 0;
-      border-radius: 8px;
-      background: var(--readonly);
-      color: var(--text);
+      border-radius: 10px;
+      background: var(--surface-soft);
+      color: var(--ink);
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
@@ -572,46 +661,73 @@
     }
 
     @media (hover: hover) and (pointer: fine) {
-      .address-search-button:hover {
-        background: var(--point);
-        color: #fff;
+      .address-search-button:hover,
+      .submit-button:hover,
+      .completion-confirm-button:hover {
+        background: #2a2a2f;
       }
 
       .submit-button:hover {
-        background: var(--point-hover);
+        box-shadow: 0 10px 24px rgba(17, 17, 19, 0.22);
       }
 
       .postcode-close-button:hover {
-        background: #e7e9e5;
+        background: #eaeaed;
       }
     }
 
     @media (max-width: 600px) {
+      html {
+        background: #fff;
+      }
+
       body {
         min-height: 100dvh;
-        padding:
-          max(10px, var(--safe-top))
-          max(10px, var(--safe-right))
-          max(10px, var(--safe-bottom))
-          max(10px, var(--safe-left));
+        padding: 0;
         display: block;
+        background: #fff;
       }
 
       .form-card {
         max-width: none;
-        min-height: calc(
-          100dvh - max(10px, var(--safe-top)) - max(10px, var(--safe-bottom))
-        );
-        padding: 28px 18px 22px;
-        border-radius: 14px;
+        min-height: 100dvh;
+        padding:
+          calc(24px + var(--safe-top))
+          max(20px, var(--safe-right))
+          calc(24px + var(--safe-bottom))
+          max(20px, var(--safe-left));
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
       }
 
       .brand {
-        margin-bottom: 24px;
+        margin-bottom: 30px;
+      }
+
+      .brand-topline {
+        margin-bottom: 34px;
+      }
+
+      .form-title {
+        font-size: 31px;
       }
 
       .field {
-        margin-bottom: 17px;
+        margin-bottom: 23px;
+      }
+
+      .field input,
+      .address-search-button {
+        min-height: 56px;
+      }
+
+      .consent-field {
+        margin-bottom: 24px;
+      }
+
+      .submit-button {
+        min-height: 58px;
       }
 
       .postcode-backdrop {
@@ -623,17 +739,18 @@
         width: 100%;
         height: 100dvh;
         max-height: none;
+        border: 0;
         border-radius: 0;
         transform: none;
       }
 
       .postcode-header {
-        min-height: calc(56px + var(--safe-top));
+        min-height: calc(60px + var(--safe-top));
         padding:
           var(--safe-top)
-          max(10px, var(--safe-right))
+          max(12px, var(--safe-right))
           0
-          max(16px, var(--safe-left));
+          max(18px, var(--safe-left));
       }
 
       .postcode-container {
@@ -641,20 +758,25 @@
       }
     }
 
-    @media (max-width: 350px) {
+    @media (max-width: 360px) {
       .form-card {
-        padding-right: 14px;
-        padding-left: 14px;
+        padding-right: 16px;
+        padding-left: 16px;
       }
 
       .address-search-row {
-        grid-template-columns: minmax(0, 1fr) 100px;
+        grid-template-columns: minmax(0, 1fr) 104px;
+        gap: 8px;
       }
 
       .address-search-button {
-        padding-right: 8px;
-        padding-left: 8px;
+        padding-right: 10px;
+        padding-left: 10px;
         font-size: 14px;
+      }
+
+      .brand-chip {
+        display: none;
       }
     }
   </style>
@@ -663,9 +785,14 @@
 <body>
   <main class="form-card">
     <header class="brand">
-      <h1 class="brand-name">PHONE911</h1>
+      <div class="brand-topline">
+        <p class="brand-name">phone<span>911</span></p>
+        <span class="brand-chip">Delivery service</span>
+      </div>
+
+      <h1 class="form-title">배송정보 입력</h1>
       <p class="brand-description">
-        상품 발송을 위한 배송정보를 입력해 주세요.
+        수리 완료 제품을 안전하게 발송할 주소를 입력해 주세요.
       </p>
     </header>
 
@@ -675,7 +802,7 @@
     -->
     <form
       id="deliveryForm"
-      action="https://script.google.com/macros/s/AKfycbzoPV34wdGWb7mhTM9koQLFPHake4Yebw5rAfRCFNuJs-oy3f6Icax4Y9BwCFA78PIH/exec"
+      action="https://script.google.com/macros/s/AKfycbwr2rw2rXA9dcM-YDgYLaa95Gvc54d3tFf1tB8iUjmw50xKLF4wlfVy_UfYx8brebPY/exec"
       method="POST"
       target="submitFrame"
       novalidate
@@ -824,7 +951,7 @@
       </div>
     </form>
 
-    <div class="version">PHONE911 Simple Form v0.07</div>
+    <div class="version">PHONE911 Simple Form v0.08</div>
   </main>
 
   <iframe
