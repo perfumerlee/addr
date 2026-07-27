@@ -1,1 +1,1050 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
 
+  <!-- PHONE911 Simple Form v0.06 -->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+  <meta name="theme-color" content="#324f3e">
+  <meta name="format-detection" content="telephone=no, address=no, email=no">
+
+  <title>배송정보 입력 | PHONE911 v0.06</title>
+
+  <style>
+    :root {
+      --bg: #f5f5f2;
+      --card: #ffffff;
+      --text: #20231f;
+      --sub-text: #767b74;
+      --line: #dcded9;
+      --readonly: #f3f4f1;
+      --point: #324f3e;
+      --point-hover: #263e31;
+      --error: #c54242;
+      --success-bg: #eef5f0;
+      --success-text: #2e6041;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      min-width: 320px;
+      min-height: 100%;
+      background: var(--bg);
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      scroll-padding-top: 16px;
+    }
+
+    body {
+      width: 100%;
+      min-width: 320px;
+      min-height: 100vh;
+      min-height: 100svh;
+      margin: 0;
+      padding:
+        max(16px, var(--safe-top))
+        max(16px, var(--safe-right))
+        max(16px, var(--safe-bottom))
+        max(16px, var(--safe-left));
+      display: grid;
+      place-items: center;
+      overflow-x: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        Pretendard,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Apple SD Gothic Neo",
+        "Noto Sans KR",
+        "Segoe UI",
+        sans-serif;
+      word-break: keep-all;
+    }
+
+    body.postcode-open {
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    button,
+    input {
+      max-width: 100%;
+      margin: 0;
+      font: inherit;
+      font-size: 16px;
+      -webkit-appearance: none;
+      appearance: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 480px;
+      padding: 34px 28px 28px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 12px 36px rgba(20, 30, 23, 0.06);
+    }
+
+    .brand {
+      margin-bottom: 26px;
+      text-align: center;
+    }
+
+    .brand-name {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 7vw, 28px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: 0.1em;
+    }
+
+    .brand-description {
+      margin: 0;
+      color: var(--sub-text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .field {
+      margin-bottom: 18px;
+      scroll-margin-top: 18px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .required {
+      margin-left: 3px;
+      color: var(--error);
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 52px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.35;
+      transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .field input::placeholder {
+      color: #9a9e98;
+      opacity: 1;
+    }
+
+    .field input[readonly] {
+      background: var(--readonly);
+      color: var(--text);
+      cursor: default;
+      opacity: 1;
+      -webkit-text-fill-color: var(--text);
+    }
+
+    .field input:focus-visible {
+      border-color: var(--point);
+      box-shadow: 0 0 0 3px rgba(50, 79, 62, 0.1);
+    }
+
+    .field input.error {
+      border-color: var(--error);
+    }
+
+    .address-search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 108px;
+      gap: 8px;
+    }
+
+    .address-search-button {
+      min-width: 0;
+      min-height: 52px;
+      padding: 0 12px;
+      border: 1px solid var(--point);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--point);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      cursor: pointer;
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.1s ease;
+    }
+
+    .address-search-button:active,
+    .submit-button:active,
+    .postcode-close-button:active {
+      transform: scale(0.985);
+    }
+
+    .address-input + .address-input {
+      margin-top: 8px;
+    }
+
+    .field-guide {
+      margin: 7px 0 0;
+      color: var(--sub-text);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .error-message {
+      min-height: 18px;
+      margin-top: 6px;
+      color: var(--error);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .consent-field {
+      margin: 2px 0 18px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fafbf9;
+      scroll-margin-top: 18px;
+    }
+
+    .consent-field.error {
+      border-color: var(--error);
+      background: #fffafa;
+    }
+
+    .consent-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.5;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .consent-checkbox {
+      width: 21px;
+      min-width: 21px;
+      height: 21px;
+      min-height: 21px;
+      margin: 0;
+      flex: 0 0 21px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      accent-color: var(--point);
+      -webkit-appearance: checkbox;
+      appearance: auto;
+      cursor: pointer;
+    }
+
+    .consent-checkbox:focus-visible {
+      outline: 3px solid rgba(50, 79, 62, 0.16);
+      outline-offset: 2px;
+    }
+
+    .consent-note {
+      margin: 8px 0 0 31px;
+      color: var(--sub-text);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .submit-button {
+      width: 100%;
+      min-height: 54px;
+      margin-top: 4px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--point);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition:
+        background 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.1s ease;
+    }
+
+    .submit-button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .result-message {
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      background: var(--success-bg);
+      color: var(--success-text);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .result-message.show {
+      display: block;
+    }
+
+    .result-message.error {
+      background: #fff1f1;
+      color: var(--error);
+    }
+
+    .version {
+      margin-top: 22px;
+      color: #a0a49f;
+      font-size: 11px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .hidden-frame {
+      display: none;
+    }
+
+    /* 모바일 주소 검색 레이어 */
+    .postcode-layer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+    }
+
+    .postcode-layer.open {
+      display: block;
+    }
+
+    .postcode-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(18, 22, 19, 0.5);
+    }
+
+    .postcode-panel {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(500px, calc(100% - 32px));
+      height: min(680px, calc(100dvh - 32px));
+      max-height: calc(100vh - 32px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      transform: translate(-50%, -50%);
+    }
+
+    .postcode-header {
+      min-height: 56px;
+      padding: 0 12px 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .postcode-title {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .postcode-close-button {
+      min-width: 54px;
+      min-height: 40px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--readonly);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .postcode-container {
+      width: 100%;
+      min-height: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+      background: #fff;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .postcode-container iframe {
+      width: 100% !important;
+      height: 100% !important;
+      border: 0 !important;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .address-search-button:hover {
+        background: var(--point);
+        color: #fff;
+      }
+
+      .submit-button:hover {
+        background: var(--point-hover);
+      }
+
+      .postcode-close-button:hover {
+        background: #e7e9e5;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        min-height: 100dvh;
+        padding:
+          max(10px, var(--safe-top))
+          max(10px, var(--safe-right))
+          max(10px, var(--safe-bottom))
+          max(10px, var(--safe-left));
+        display: block;
+      }
+
+      .form-card {
+        max-width: none;
+        min-height: calc(
+          100dvh - max(10px, var(--safe-top)) - max(10px, var(--safe-bottom))
+        );
+        padding: 28px 18px 22px;
+        border-radius: 14px;
+      }
+
+      .brand {
+        margin-bottom: 24px;
+      }
+
+      .field {
+        margin-bottom: 17px;
+      }
+
+      .postcode-backdrop {
+        display: none;
+      }
+
+      .postcode-panel {
+        inset: 0;
+        width: 100%;
+        height: 100dvh;
+        max-height: none;
+        border-radius: 0;
+        transform: none;
+      }
+
+      .postcode-header {
+        min-height: calc(56px + var(--safe-top));
+        padding:
+          var(--safe-top)
+          max(10px, var(--safe-right))
+          0
+          max(16px, var(--safe-left));
+      }
+
+      .postcode-container {
+        padding-bottom: var(--safe-bottom);
+      }
+    }
+
+    @media (max-width: 350px) {
+      .form-card {
+        padding-right: 14px;
+        padding-left: 14px;
+      }
+
+      .address-search-row {
+        grid-template-columns: minmax(0, 1fr) 100px;
+      }
+
+      .address-search-button {
+        padding-right: 8px;
+        padding-left: 8px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="form-card">
+    <header class="brand">
+      <h1 class="brand-name">PHONE911</h1>
+      <p class="brand-description">
+        상품 발송을 위한 배송정보를 입력해 주세요.
+      </p>
+    </header>
+
+    <!--
+      action 주소를 배포한 Google Apps Script 웹 앱 URL로 변경하세요.
+      예: https://script.google.com/macros/s/배포ID/exec
+    -->
+    <form
+      id="deliveryForm"
+      action="https://script.google.com/macros/s/AKfycbwBpWYNOfu_IZtZ7R1ZLkObc_cprNITMUgHsX3MUudgCLjnVOLF_c4h8oN-k5YAQxLt/exec"
+      method="POST"
+      target="submitFrame"
+      novalidate
+    >
+      <div class="field">
+        <label for="customerName">
+          이름<span class="required">*</span>
+        </label>
+
+        <input
+          type="text"
+          id="customerName"
+          name="customerName"
+          placeholder="이름을 입력해 주세요"
+          maxlength="30"
+          autocomplete="name"
+          enterkeyhint="next"
+          required
+        >
+
+        <div class="error-message" id="customerNameError"></div>
+      </div>
+
+      <div class="field">
+        <label for="customerPhone">
+          연락처<span class="required">*</span>
+        </label>
+
+        <input
+          type="tel"
+          id="customerPhone"
+          name="customerPhone"
+          placeholder="010-0000-0000"
+          maxlength="13"
+          inputmode="tel"
+          autocomplete="tel"
+          enterkeyhint="next"
+          required
+        >
+
+        <div class="error-message" id="customerPhoneError"></div>
+      </div>
+
+      <div class="field">
+        <label for="deliveryPostcode">
+          배송지 주소<span class="required">*</span>
+        </label>
+
+        <div class="address-search-row">
+          <input
+            type="text"
+            id="deliveryPostcode"
+            name="deliveryPostcode"
+            placeholder="우편번호"
+            maxlength="5"
+            inputmode="numeric"
+            autocomplete="postal-code"
+            readonly
+            required
+          >
+
+          <button
+            type="button"
+            id="addressSearchButton"
+            class="address-search-button"
+          >
+            주소 검색
+          </button>
+        </div>
+
+        <input
+          type="text"
+          id="deliveryBaseAddress"
+          name="deliveryBaseAddress"
+          class="address-input"
+          placeholder="주소 검색을 눌러 주세요"
+          maxlength="150"
+          autocomplete="address-line1"
+          readonly
+          required
+        >
+
+        <input
+          type="text"
+          id="deliveryDetailAddress"
+          name="deliveryDetailAddress"
+          class="address-input"
+          placeholder="상세주소를 입력해 주세요"
+          maxlength="100"
+          autocomplete="address-line2"
+          enterkeyhint="done"
+          required
+        >
+
+        <!-- 시트 저장 및 기존 연동 호환용 전체 주소 -->
+        <input
+          type="hidden"
+          id="deliveryAddress"
+          name="deliveryAddress"
+        >
+
+        <p class="field-guide">
+          주소 검색 후 동·호수 등 상세주소를 입력해 주세요.
+        </p>
+
+        <div class="error-message" id="deliveryAddressError"></div>
+      </div>
+
+      <div id="privacyConsentField" class="consent-field">
+        <label class="consent-label" for="privacyConsent">
+          <input
+            type="checkbox"
+            id="privacyConsent"
+            name="privacyConsent"
+            value="Y"
+            class="consent-checkbox"
+            required
+          >
+          <span>
+            개인정보 수집 및 이용에 동의합니다.<span class="required">*</span>
+          </span>
+        </label>
+
+        <p class="consent-note">
+          입력한 정보는 상품 배송 및 배송 관련 안내를 위해 사용됩니다.
+        </p>
+
+        <div class="error-message" id="privacyConsentError"></div>
+      </div>
+
+      <button
+        type="submit"
+        id="submitButton"
+        class="submit-button"
+      >
+        배송정보 저장
+      </button>
+
+      <div
+        id="resultMessage"
+        class="result-message"
+        role="status"
+        aria-live="polite"
+      >
+        배송정보가 정상적으로 저장되었습니다.
+      </div>
+    </form>
+
+    <div class="version">PHONE911 Simple Form v0.06</div>
+  </main>
+
+  <iframe
+    name="submitFrame"
+    id="submitFrame"
+    class="hidden-frame"
+    title="데이터 전송 영역"
+  ></iframe>
+
+  <div
+    id="postcodeLayer"
+    class="postcode-layer"
+    aria-hidden="true"
+  >
+    <div class="postcode-backdrop" id="postcodeBackdrop"></div>
+
+    <section
+      class="postcode-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="postcodeTitle"
+    >
+      <header class="postcode-header">
+        <h2 id="postcodeTitle" class="postcode-title">
+          배송지 주소 검색
+        </h2>
+
+        <button
+          type="button"
+          id="postcodeCloseButton"
+          class="postcode-close-button"
+          aria-label="주소 검색 닫기"
+        >
+          닫기
+        </button>
+      </header>
+
+      <div id="postcodeContainer" class="postcode-container"></div>
+    </section>
+  </div>
+
+  <!-- Kakao 우편번호 서비스: 별도의 앱 키 없이 사용 -->
+  <script src="https://t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+  <script>
+    const form = document.getElementById("deliveryForm");
+    const submitButton = document.getElementById("submitButton");
+    const submitFrame = document.getElementById("submitFrame");
+    const resultMessage = document.getElementById("resultMessage");
+
+    const customerName = document.getElementById("customerName");
+    const customerPhone = document.getElementById("customerPhone");
+    const deliveryPostcode = document.getElementById("deliveryPostcode");
+    const deliveryBaseAddress = document.getElementById("deliveryBaseAddress");
+    const deliveryDetailAddress = document.getElementById("deliveryDetailAddress");
+    const deliveryAddress = document.getElementById("deliveryAddress");
+    const addressSearchButton = document.getElementById("addressSearchButton");
+    const privacyConsent = document.getElementById("privacyConsent");
+    const privacyConsentField = document.getElementById("privacyConsentField");
+
+    const postcodeLayer = document.getElementById("postcodeLayer");
+    const postcodeContainer = document.getElementById("postcodeContainer");
+    const postcodeCloseButton = document.getElementById("postcodeCloseButton");
+    const postcodeBackdrop = document.getElementById("postcodeBackdrop");
+
+    let isSubmitting = false;
+    let isPostcodeOpen = false;
+
+    addressSearchButton.addEventListener("click", openPostcodeSearch);
+    postcodeCloseButton.addEventListener("click", function () {
+      closePostcodeSearch(true);
+    });
+    postcodeBackdrop.addEventListener("click", function () {
+      closePostcodeSearch(true);
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && isPostcodeOpen) {
+        closePostcodeSearch(true);
+      }
+    });
+
+    customerPhone.addEventListener("input", function () {
+      const numbers = this.value.replace(/\D/g, "").slice(0, 11);
+
+      if (numbers.length <= 3) {
+        this.value = numbers;
+      } else if (numbers.length <= 7) {
+        this.value = numbers.slice(0, 3) + "-" + numbers.slice(3);
+      } else {
+        this.value =
+          numbers.slice(0, 3) +
+          "-" +
+          numbers.slice(3, 7) +
+          "-" +
+          numbers.slice(7);
+      }
+
+      clearFieldError(this);
+    });
+
+    customerName.addEventListener("input", function () {
+      clearFieldError(this);
+    });
+
+    deliveryDetailAddress.addEventListener("input", function () {
+      updateFullAddress();
+      clearAddressError();
+    });
+
+    privacyConsent.addEventListener("change", function () {
+      clearConsentError();
+    });
+
+    form.addEventListener("submit", function (event) {
+      resultMessage.classList.remove("show", "error");
+      updateFullAddress();
+
+      if (!validateForm()) {
+        event.preventDefault();
+        return;
+      }
+
+      isSubmitting = true;
+      submitButton.disabled = true;
+      submitButton.textContent = "저장 중...";
+    });
+
+    window.addEventListener("message", function (event) {
+      if (
+        !isSubmitting ||
+        event.source !== submitFrame.contentWindow ||
+        !event.data ||
+        event.data.type !== "PHONE911_FORM_RESULT"
+      ) {
+        return;
+      }
+
+      isSubmitting = false;
+      submitButton.disabled = false;
+      submitButton.textContent = "배송정보 저장";
+
+      if (event.data.success) {
+        form.reset();
+        deliveryAddress.value = "";
+        clearAllErrors();
+        resultMessage.textContent = "배송정보가 정상적으로 저장되었습니다.";
+        resultMessage.classList.remove("error");
+        resultMessage.classList.add("show");
+        resultMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        resultMessage.textContent =
+          event.data.message ||
+          "저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        resultMessage.classList.add("error", "show");
+        resultMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+
+    function openPostcodeSearch() {
+      clearAddressError();
+
+      const Postcode = getPostcodeConstructor();
+
+      if (!Postcode) {
+        showAddressError(
+          "주소 검색 서비스를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요."
+        );
+        return;
+      }
+
+      postcodeContainer.innerHTML = "";
+      postcodeLayer.classList.add("open");
+      postcodeLayer.setAttribute("aria-hidden", "false");
+      document.body.classList.add("postcode-open");
+      isPostcodeOpen = true;
+
+      new Postcode({
+        width: "100%",
+        height: "100%",
+        maxSuggestItems: 5,
+        oncomplete: function (data) {
+          applySelectedAddress(data);
+          closePostcodeSearch(false);
+
+          window.setTimeout(function () {
+            deliveryDetailAddress.focus({ preventScroll: true });
+            deliveryDetailAddress.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          }, 120);
+        }
+      }).embed(postcodeContainer, {
+        autoClose: false
+      });
+
+      window.setTimeout(function () {
+        postcodeCloseButton.focus({ preventScroll: true });
+      }, 50);
+    }
+
+    function getPostcodeConstructor() {
+      if (
+        window.kakao &&
+        typeof window.kakao.Postcode === "function"
+      ) {
+        return window.kakao.Postcode;
+      }
+
+      if (
+        window.daum &&
+        typeof window.daum.Postcode === "function"
+      ) {
+        return window.daum.Postcode;
+      }
+
+      return null;
+    }
+
+    function applySelectedAddress(data) {
+      let baseAddress = "";
+      let extraAddress = "";
+
+      if (data.userSelectedType === "R") {
+        baseAddress = data.roadAddress || data.address || "";
+
+        if (data.bname && /[동로가]$/.test(data.bname)) {
+          extraAddress += data.bname;
+        }
+
+        if (data.buildingName && data.apartment === "Y") {
+          extraAddress += extraAddress
+            ? ", " + data.buildingName
+            : data.buildingName;
+        }
+
+        if (extraAddress) {
+          baseAddress += " (" + extraAddress + ")";
+        }
+      } else {
+        baseAddress = data.jibunAddress || data.address || "";
+      }
+
+      deliveryPostcode.value = data.zonecode || "";
+      deliveryBaseAddress.value = baseAddress;
+      deliveryDetailAddress.value = "";
+      updateFullAddress();
+      clearAddressError();
+    }
+
+    function closePostcodeSearch(restoreFocus) {
+      postcodeLayer.classList.remove("open");
+      postcodeLayer.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("postcode-open");
+      postcodeContainer.innerHTML = "";
+      isPostcodeOpen = false;
+
+      if (restoreFocus) {
+        addressSearchButton.focus({ preventScroll: true });
+      }
+    }
+
+    function updateFullAddress() {
+      const baseAddress = deliveryBaseAddress.value.trim();
+      const detailAddress = deliveryDetailAddress.value.trim();
+
+      deliveryAddress.value = [baseAddress, detailAddress]
+        .filter(Boolean)
+        .join(" ");
+    }
+
+    function validateForm() {
+      let isValid = true;
+      clearAllErrors();
+
+      if (!customerName.value.trim()) {
+        showFieldError(customerName, "이름을 입력해 주세요.");
+        isValid = false;
+      }
+
+      const phoneNumbers = customerPhone.value.replace(/\D/g, "");
+
+      if (!phoneNumbers) {
+        showFieldError(customerPhone, "연락처를 입력해 주세요.");
+        isValid = false;
+      } else if (phoneNumbers.length < 10) {
+        showFieldError(customerPhone, "연락처를 정확하게 입력해 주세요.");
+        isValid = false;
+      }
+
+      if (!deliveryPostcode.value.trim() || !deliveryBaseAddress.value.trim()) {
+        showAddressError("주소 검색을 통해 배송지 주소를 선택해 주세요.");
+        isValid = false;
+      } else if (!deliveryDetailAddress.value.trim()) {
+        showAddressError("상세주소를 입력해 주세요.");
+        deliveryDetailAddress.classList.add("error");
+        isValid = false;
+      }
+
+      if (!privacyConsent.checked) {
+        showConsentError("개인정보 수집 및 이용에 동의해 주세요.");
+        isValid = false;
+      }
+
+      if (!isValid) {
+        const firstErrorField =
+          document.querySelector("input.error") ||
+          (!privacyConsent.checked ? privacyConsent : null);
+
+        if (firstErrorField) {
+          firstErrorField.focus({ preventScroll: true });
+          firstErrorField.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }
+      }
+
+      return isValid;
+    }
+
+    function showFieldError(field, message) {
+      field.classList.add("error");
+      const errorElement = document.getElementById(field.id + "Error");
+
+      if (errorElement) {
+        errorElement.textContent = message;
+      }
+    }
+
+    function clearFieldError(field) {
+      field.classList.remove("error");
+      const errorElement = document.getElementById(field.id + "Error");
+
+      if (errorElement) {
+        errorElement.textContent = "";
+      }
+    }
+
+    function showAddressError(message) {
+      deliveryPostcode.classList.add("error");
+      deliveryBaseAddress.classList.add("error");
+      document.getElementById("deliveryAddressError").textContent = message;
+    }
+
+    function clearAddressError() {
+      deliveryPostcode.classList.remove("error");
+      deliveryBaseAddress.classList.remove("error");
+      deliveryDetailAddress.classList.remove("error");
+      document.getElementById("deliveryAddressError").textContent = "";
+    }
+
+    function showConsentError(message) {
+      privacyConsentField.classList.add("error");
+      document.getElementById("privacyConsentError").textContent = message;
+    }
+
+    function clearConsentError() {
+      privacyConsentField.classList.remove("error");
+      document.getElementById("privacyConsentError").textContent = "";
+    }
+
+    function clearAllErrors() {
+      clearFieldError(customerName);
+      clearFieldError(customerPhone);
+      clearAddressError();
+      clearConsentError();
+    }
+  </script>
+</body>
+</html>
