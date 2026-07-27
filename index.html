@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- PHONE911 Simple Form v0.11 -->
+  <!-- PHONE911 Simple Form v0.13 -->
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#111113">
   <meta name="format-detection" content="telephone=no, address=no, email=no">
 
-  <title>배송정보 입력 | PHONE911 v0.11</title>
+  <title>배송정보 입력 | PHONE911 v0.13</title>
 
   <style>
     :root {
@@ -818,7 +818,7 @@
     -->
     <form
       id="deliveryForm"
-      action="https://script.google.com/macros/s/AKfycbxKnxAGzBMuSnnRynXtMwYRzZnB0aDPwlQEP_qRBAuzxFCO9ttZR7uEF_h6DibZmPSn/exec"
+      action="https://script.google.com/macros/s/AKfycbzQ7lqSJv4DN_qS-anfbCq0RodItp9jsHiOVQxnOk5gaLPX0zCmqaNEtquRpAkLM9__/exec"
       method="POST"
       target="submitFrame"
       novalidate
@@ -914,13 +914,12 @@
           id="deliveryDetailAddress"
           name="deliveryDetailAddress"
           class="address-input"
-          placeholder="상세주소를 입력해 주세요"
+          placeholder="상세주소를 입력해 주세요 (선택)"
           maxlength="100"
           autocomplete="address-line2"
           enterkeyhint="done"
           aria-describedby="deliveryAddressError"
           aria-invalid="false"
-          required
         >
 
         <!-- 시트 저장 및 기존 연동 호환용 전체 주소 -->
@@ -938,7 +937,7 @@
         >
 
         <p class="field-guide">
-          주소 검색 후 동·호수 등 상세주소를 입력해 주세요.
+          동·호수 등 상세주소가 있는 경우에만 입력해 주세요. (선택)
         </p>
 
         <div class="error-message" id="deliveryAddressError" role="status" aria-live="polite"></div>
@@ -986,7 +985,7 @@
       </div>
     </form>
 
-    <div class="version">PHONE911 Simple Form v0.11</div>
+    <div class="version">PHONE911 Simple Form v0.13</div>
   </main>
 
   <iframe
@@ -1547,19 +1546,19 @@
     }
 
     function isValidKoreanPhone(numbers) {
-      if (/^02\d{7,8}$/.test(numbers)) {
-        return true;
+      if (!/^0\d{8,10}$/.test(numbers)) {
+        return false;
       }
 
-      if (/^010\d{8}$/.test(numbers)) {
-        return true;
+      if (numbers.startsWith("010")) {
+        return numbers.length === 11;
       }
 
-      if (/^01[16789]\d{7,8}$/.test(numbers)) {
-        return true;
+      if (numbers.startsWith("02")) {
+        return numbers.length === 9 || numbers.length === 10;
       }
 
-      return /^(?:03[1-3]|04[1-4]|05[0-5]|06[1-4]|070|080)\d{7,8}$/.test(numbers);
+      return numbers.length === 10 || numbers.length === 11;
     }
 
     function validateCustomerName(showError) {
@@ -1648,17 +1647,7 @@
       deliveryPostcode.setAttribute("aria-invalid", "false");
       deliveryBaseAddress.setAttribute("aria-invalid", "false");
 
-      if (!detailAddress) {
-        if (showError) {
-          deliveryDetailAddress.classList.add("error");
-          deliveryDetailAddress.setAttribute("aria-invalid", "true");
-          document.getElementById("deliveryAddressError").textContent =
-            "동·호수 등 상세주소를 입력해 주세요.";
-        }
-        return false;
-      }
-
-      if (!detailHasContent || detailAddress.length > 100) {
+      if (detailAddress && (!detailHasContent || detailAddress.length > 100)) {
         if (showError) {
           deliveryDetailAddress.classList.add("error");
           deliveryDetailAddress.setAttribute("aria-invalid", "true");
@@ -1670,8 +1659,14 @@
 
       deliveryBaseAddress.value = baseAddress;
       deliveryDetailAddress.value = detailAddress;
-      deliveryDetailAddress.classList.add("valid");
       deliveryDetailAddress.setAttribute("aria-invalid", "false");
+
+      if (detailAddress) {
+        deliveryDetailAddress.classList.add("valid");
+      } else {
+        deliveryDetailAddress.classList.remove("error", "valid");
+      }
+
       updateFullAddress();
       return true;
     }
